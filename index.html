@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo Secuencial y Perdida</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+
+</head>
+<style>
+    body{
+        background-color: rgb(246, 219, 222);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    button:hover{
+        color: white;
+        background-color: rgb(244, 210, 216);
+    }
+    h1{
+        margin-top: 55px;
+    }
+    .container {
+      margin-top: 55px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.266);
+      max-width: 400px;
+      text-align: center;
+    }
+    input {
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+</style>
+<body>
+    <h1>Modelo Cuadratico</h1>
+    <div class="container">
+        <h3>Formula: y=2x^2-3x+1</h3>
+        <input id="input" type="text" placeholder="escribe aqui el valor de y..">
+        <button onclick="predecir()">Predecir Xs</button>
+    <div id="outpud_field"></div>
+    </div>
+   <script> 
+   //Definimos la variable global del modelo
+   let model;
+   async function Model() {
+    //Creacion del modelo secuencial
+    model = tf.sequential();
+    // Agregamos capas densas al modelo 
+      model.add(tf.layers.dense({units: 2, inputShape: [1]})); 
+    model.compile({
+        loss: 'meanSquaredError',
+        optimizer: 'adam'  
+    })   
+    
+      const inputs = [];  // Almacenamos y
+      const outputs = []; // Almacenamos los Xs
+    //Creacion de tensor
+      for (let x = -20; x <= 20; x += 0.1) {
+        const y = 2 * x ** 2 - 3 * x + 1;
+
+        // Calculamos las raíces reales desde ese y
+        const a = 2, b = -3, c = 1 - y;
+        const discriminante = b**2 - 4*a*c;
+
+        if (discriminante >= 0) {
+  const raiz = Math.sqrt(discriminante);
+  const x1 = (3 + raiz) / (2 * a);
+  const x2 = (3 - raiz) / (2 * a);
+
+  // ✅ Validamos que los valores sean finitos
+  if (isFinite(x1) && isFinite(x2)) {
+    inputs.push([y]);
+    outputs.push([x1, x2]);
+  }
+}
+      }
+      // Creamos los tensores con los datos
+      const xs = tf.tensor2d(inputs);  // tensor de entradas
+      const ys = tf.tensor2d(outputs); // tensor de salidas
+
+    // Cada que pierde una epoca de entrenamiento muestra el valor de perdida
+    const surface = { name: 'Grafica dev perdida durante entrenamiento' };
+    await model.fit(xs, ys, {
+    epochs: 100,
+    callbacks: tfvis.show.fitCallbacks(surface, ['loss'], {
+    callbacks: ['onEpochEnd'],
+  })
+});
+    document.getElementById("outpud_field").innerText = "modelo entrenado..."
+   }
+   async function predecir() {
+    const input = parseFloat(document.getElementById('input').value.trim());
+    // Validar
+if (isNaN(input)) {
+  document.getElementById("outpud_field").innerText = "Introduce al menos un número válido.";
+  return;
+}
+const inputTensor = tf.tensor2d([input], [1, 1]);
+const outputTensor = model.predict(inputTensor);
+// Mostrar resultados
+const results = await outputTensor.array();
+const x1 = results[0][0];
+const x2 = results[0][1];
+  // Mostramos el resultado en pantalla
+      document.getElementById('outpud_field').innerText =
+        `Para y = ${input},  x1= ${x1.toFixed(4)} y x2= ${x2.toFixed(4)}`;
+    }
+Model()
+   </script> 
+</body>
+</html>
