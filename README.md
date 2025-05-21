@@ -14,8 +14,8 @@ Este proyecto utiliza **TensorFlow.js** para crear un modelo que predice los val
 
 1. Clona el repositorio.
    ```bash
-   git clone https://github.com/Fleitaselene-dev/sitios_codelab_gustosmusicales.git
-   cd sitios_codelab_gustosmusicales
+   git clone https://github.com/Fleitaselene-dev/modelo_seminario.git
+   cd modelo_seminario
    ```
 
 2. Abre la carpeta del proyecto en **Visual Studio Code** (VSCode).
